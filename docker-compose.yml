@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: litellm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - litellm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: litellm-ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+    volumes:
+      - ./data/ollama:/root/.ollama
+    networks:
+      - litellm-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    # No external ports - only accessible via litellm
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-proxy
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY}
+      UI_USERNAME: ${UI_USERNAME}
+      UI_PASSWORD: ${UI_PASSWORD}
+      STORE_MODEL_IN_DB: "True"
+      # OAuth Configuration
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
+      # Provider API Keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      AZURE_API_KEY: ${AZURE_API_KEY}
+      AZURE_API_BASE: ${AZURE_API_BASE}
+      AZURE_API_VERSION: ${AZURE_API_VERSION}
+    volumes:
+      - ./config/litellm-config.yaml:/app/config.yaml
+    command: --config /app/config.yaml --port 4000 --num_workers 2
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    networks:
+      - litellm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: litellm-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+      - ./dashboard:/usr/share/nginx/html/dashboard:ro
+    depends_on:
+      - litellm
+    networks:
+      - litellm-network
+
+networks:
+  litellm-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  ollama-data:

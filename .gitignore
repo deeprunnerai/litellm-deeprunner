@@ -1,0 +1,59 @@
+# Environment variables (NEVER commit secrets!)
+.env
+.env.local
+.env.*.local
+.env.bak
+
+# Data directories (contains persistent data)
+data/
+data/postgres/
+data/ollama/
+
+# SSL certificates (sensitive)
+config/ssl/*.pem
+config/ssl/*.key
+config/ssl/*.crt
+
+# Logs
+*.log
+logs/
+ssl-renewal.log
+
+# Backups
+backups/
+*.sql
+*.dump
+
+# OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Editor specific
+*.sublime-project
+*.sublime-workspace
+.vscode/
+.idea/

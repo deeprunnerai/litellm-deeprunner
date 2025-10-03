@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteLLM Analytics - DeepRunner.ai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f1419;
+            color: #e6edf3;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #30363d;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .logo {
+            color: #58a6ff;
+        }
+
+        .refresh-btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #2ea043;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: #58a6ff;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #8b949e;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .metric-change.positive {
+            color: #3fb950;
+        }
+
+        .metric-change.negative {
+            color: #f85149;
+        }
+
+        .chart-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .chart-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #e6edf3;
+        }
+
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #58a6ff 0%, #1f6feb 100%);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            min-width: 40px;
+        }
+
+        .bar:hover {
+            background: linear-gradient(180deg, #79c0ff 0%, #58a6ff 100%);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #8b949e;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+
+        .table-container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #30363d;
+            color: #8b949e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #21262d;
+        }
+
+        tr:hover {
+            background: #0d1117;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #238636;
+            color: #fff;
+        }
+
+        .status-error {
+            background: #da3633;
+            color: #fff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8b949e;
+        }
+
+        .error-message {
+            background: #da3633;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span class="logo">LiteLLM Analytics</span> - DeepRunner.ai</h1>
+            <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
+        </header>
+
+        <div id="error-container"></div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Requests (24h)</div>
+                <div class="metric-value" id="total-requests">-</div>
+                <div class="metric-change positive" id="requests-change">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Tokens</div>
+                <div class="metric-value" id="total-tokens">-</div>
+                <div class="metric-change positive" id="tokens-change">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg Latency</div>
+                <div class="metric-value" id="avg-latency">-</div>
+                <div class="metric-change negative" id="latency-change">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Users</div>
+                <div class="metric-value" id="active-users">-</div>
+                <div class="metric-change positive" id="users-change">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Error Rate</div>
+                <div class="metric-value" id="error-rate">-</div>
+                <div class="metric-change negative" id="error-change">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Est. Cost (24h)</div>
+                <div class="metric-value" id="est-cost">-</div>
+                <div class="metric-change positive" id="cost-change">-</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">Requests by Provider (Last 7 Days)</div>
+            <div class="chart-container" id="provider-chart">
+                <div class="loading">Loading data...</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">Model Usage Distribution</div>
+            <div class="chart-container" id="model-chart">
+                <div class="loading">Loading data...</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="chart-header">Recent Activity</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Model</th>
+                        <th>Provider</th>
+                        <th>Tokens</th>
+                        <th>Latency</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="activity-table">
+                    <tr>
+                        <td colspan="7" class="loading">Loading activity...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const MASTER_KEY = localStorage.getItem('litellm_master_key') || prompt('Enter LiteLLM Master Key:');
+
+        if (MASTER_KEY) {
+            localStorage.setItem('litellm_master_key', MASTER_KEY);
+        }
+
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${MASTER_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        function createBarChart(containerId, data) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="loading">No data available</div>';
+                return;
+            }
+
+            const maxValue = Math.max(...data.map(item => item.value));
+
+            data.forEach(item => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${(item.value / maxValue) * 100}%`;
+
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = item.label;
+
+                const value = document.createElement('div');
+                value.className = 'bar-value';
+                value.textContent = item.value.toLocaleString();
+
+                bar.appendChild(label);
+                bar.appendChild(value);
+                container.appendChild(bar);
+            });
+        }
+
+        function updateMetrics(data) {
+            // Mock data for demonstration
+            document.getElementById('total-requests').textContent = '12,543';
+            document.getElementById('requests-change').textContent = '+15.3% from yesterday';
+
+            document.getElementById('total-tokens').textContent = '4.2M';
+            document.getElementById('tokens-change').textContent = '+8.7% from yesterday';
+
+            document.getElementById('avg-latency').textContent = '1.2s';
+            document.getElementById('latency-change').textContent = '-5.2% from yesterday';
+
+            document.getElementById('active-users').textContent = '47';
+            document.getElementById('users-change').textContent = '+3 from yesterday';
+
+            document.getElementById('error-rate').textContent = '0.3%';
+            document.getElementById('error-change').textContent = '-0.1% from yesterday';
+
+            document.getElementById('est-cost').textContent = '$45.20';
+            document.getElementById('cost-change').textContent = '+$3.40 from yesterday';
+        }
+
+        function loadProviderData() {
+            const mockData = [
+                { label: 'OpenAI', value: 5200 },
+                { label: 'Anthropic', value: 4100 },
+                { label: 'Azure', value: 2100 },
+                { label: 'Ollama', value: 1142 }
+            ];
+            createBarChart('provider-chart', mockData);
+        }
+
+        function loadModelData() {
+            const mockData = [
+                { label: 'GPT-4', value: 3200 },
+                { label: 'GPT-3.5', value: 2800 },
+                { label: 'Claude-3', value: 4100 },
+                { label: 'Mistral', value: 1142 },
+                { label: 'Haiku', value: 1301 }
+            ];
+            createBarChart('model-chart', mockData);
+        }
+
+        function loadActivityTable() {
+            const tbody = document.getElementById('activity-table');
+            const mockActivity = [
+                { time: '2 min ago', user: 'john@deeprunner.ai', model: 'gpt-4', provider: 'OpenAI', tokens: '1,234', latency: '1.2s', status: 'active' },
+                { time: '5 min ago', user: 'sarah@deeprunner.ai', model: 'claude-3-sonnet', provider: 'Anthropic', tokens: '2,456', latency: '0.9s', status: 'active' },
+                { time: '8 min ago', user: 'mike@deeprunner.ai', model: 'mistral-local', provider: 'Ollama', tokens: '890', latency: '0.5s', status: 'active' },
+                { time: '12 min ago', user: 'emma@deeprunner.ai', model: 'gpt-3.5-turbo', provider: 'OpenAI', tokens: '1,567', latency: '0.7s', status: 'active' },
+                { time: '15 min ago', user: 'alex@deeprunner.ai', model: 'claude-3-haiku', provider: 'Anthropic', tokens: '678', latency: '0.4s', status: 'active' }
+            ];
+
+            tbody.innerHTML = mockActivity.map(activity => `
+                <tr>
+                    <td>${activity.time}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.model}</td>
+                    <td>${activity.provider}</td>
+                    <td>${activity.tokens}</td>
+                    <td>${activity.latency}</td>
+                    <td><span class="status-badge status-${activity.status}">${activity.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function refreshData() {
+            document.getElementById('error-container').innerHTML = '';
+
+            // In production, these would fetch real data from LiteLLM API
+            updateMetrics();
+            loadProviderData();
+            loadModelData();
+            loadActivityTable();
+        }
+
+        // Initial load
+        refreshData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>
