@@ -79,9 +79,10 @@ litellm-deeprunner/
 4. Update TASKS.md with refactoring status
 
 ## Current State
-- **Phase**: Initial setup complete
-- **Status**: Ready for deployment
-- **Next Steps**: User needs to provide domain, droplet IP, M365 credentials
+- **Phase**: Deployed to production droplet (46.101.121.227)
+- **Status**: Services running, accessible via production URL
+- **Current**: Sign-in page working, OAuth authentication pending
+- **Next Step**: Configure Microsoft 365 OAuth (see TASKS.md)
 
 ## API Providers Configured
 - OpenAI (gpt-4, gpt-4-turbo, gpt-3.5-turbo)

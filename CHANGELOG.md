@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### In Progress - 2025-01-03
-**Deployment to Production Droplet**
+### In Progress - 2025-10-04
+**Production Deployment & OAuth Configuration**
 
 #### Added
 - **docs/SCALING_GUIDE.md**: Comprehensive scaling documentation
@@ -42,9 +42,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Files Uploaded**: All project files transferred to droplet
 
-#### Current Status
-**Awaiting**: Domain name, email for SSL, API keys
-**Next**: Configure .env → Run setup.sh → Deploy services
+#### Current Status (2025-10-04)
+**Completed**:
+- Droplet provisioned and configured
+- All services deployed and running
+- Production URL accessible
+- Sign-in page working
+
+**In Progress**:
+- Microsoft 365 OAuth authentication configuration
+
+**Next**: Complete M365 OAuth setup in Azure AD → Test SSO login flow
 
 ### Planned
 - Terraform configuration for infrastructure as code
@@ -55,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.0] - 2025-01-XX
+## [0.1.0] - 2025-10-03
 
 ### Added - Initial Setup
 

@@ -55,11 +55,11 @@ The script will:
 
 ## 🚀 Deployment Status
 
-**Current Deployment**: In Progress
+**Current Deployment**: Running on Production Droplet
 - **Droplet**: 46.101.121.227 (Premium AMD 4GB/2CPU)
-- **Status**: Files uploaded, awaiting configuration
-- **Optimized**: For 4GB RAM (2 workers, limited Ollama memory)
-- **Next**: Domain setup → SSL → Deploy
+- **Status**: All services running, accessible at production URL
+- **Access**: Sign-in page working
+- **Next Step**: Configure Microsoft 365 OAuth authentication
 
 See [TASKS.md](TASKS.md) for detailed progress tracking.
 
@@ -90,36 +90,14 @@ litellm-deeprunner/
 
 ### Environment Variables
 
-Key variables in `.env`:
+See `.env.template` for all configuration options including:
+- Database credentials
+- LiteLLM master key and salt
+- Microsoft 365 OAuth (client ID, secret, tenant ID)
+- Domain configuration
+- LLM provider API keys (OpenAI, Anthropic, Azure)
 
-```env
-# Database
-POSTGRES_PASSWORD=your-secure-password
-
-# LiteLLM
-LITELLM_MASTER_KEY=sk-your-master-key
-LITELLM_SALT_KEY=your-salt-key
-UI_USERNAME=admin
-UI_PASSWORD=your-admin-password
-
-# Microsoft 365 OAuth
-MICROSOFT_CLIENT_ID=your-client-id
-MICROSOFT_CLIENT_SECRET=your-client-secret
-MICROSOFT_TENANT_ID=your-tenant-id
-
-# Domain
-DOMAIN=litellm.deeprunner.ai
-
-# LLM Provider API Keys
-OPENAI_API_KEY=sk-your-openai-key
-ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
-AZURE_API_KEY=your-azure-key
-```
-
-Generate secure keys:
-```bash
-openssl rand -hex 32
-```
+Generate secure keys: `openssl rand -hex 32`
 
 ### Supported Models
 
@@ -137,44 +115,14 @@ openssl rand -hex 32
 
 ## 🎯 API Usage
 
-### Using cURL
+LiteLLM provides an OpenAI-compatible API at `https://litellm.deeprunner.ai/v1`
 
-```bash
-curl https://litellm.deeprunner.ai/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_MASTER_KEY" \
-  -d '{
-    "model": "gpt-3.5-turbo",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
+Use the OpenAI SDK (Python, JavaScript) or cURL with:
+- **Endpoint**: `/v1/chat/completions`
+- **Auth**: `Authorization: Bearer YOUR_MASTER_KEY`
+- **Models**: Any configured model (gpt-4, claude-3-sonnet, mistral-local, etc.)
 
-### Using OpenAI Python SDK
-
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="YOUR_MASTER_KEY",
-    base_url="https://litellm.deeprunner.ai/v1"
-)
-
-response = client.chat.completions.create(
-    model="claude-3-sonnet",  # Works with any configured model
-    messages=[{"role": "user", "content": "Hello from DeepRunner.ai!"}]
-)
-
-print(response.choices[0].message.content)
-```
-
-### Using Local Mistral Model
-
-```python
-response = client.chat.completions.create(
-    model="mistral-local",  # No external API calls
-    messages=[{"role": "user", "content": "Analyze this code..."}]
-)
-```
+See [LiteLLM API docs](https://docs.litellm.ai/docs/proxy/user_keys) for complete API reference and examples.
 
 ## 🔐 Security Features
 

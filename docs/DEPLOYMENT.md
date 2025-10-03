@@ -107,14 +107,10 @@ cp .env.template .env
 nano .env
 ```
 
-Update the following in `.env`:
-- `POSTGRES_PASSWORD`: Strong database password
-- `LITELLM_MASTER_KEY`: Generate with `openssl rand -hex 32`
-- `LITELLM_SALT_KEY`: Generate with `openssl rand -hex 32`
-- `UI_PASSWORD`: Strong admin password
-- `DOMAIN`: Your domain (e.g., litellm.deeprunner.ai)
-- `ADMIN_EMAIL`: Your email for SSL certificates
-- Add your API keys (OpenAI, Anthropic, etc.)
+See `.env.template` for all required configuration. Key items:
+- Database password, LiteLLM master/salt keys (generate with `openssl rand -hex 32`)
+- Domain and admin email for SSL
+- LLM provider API keys
 
 ### Run Deployment Script
 ```bash
@@ -177,20 +173,8 @@ sudo chown deeprunner:deeprunner config/ssl/*.pem
 ```
 
 ### Setup Auto-Renewal
+See `scripts/renew-ssl.sh` for the SSL renewal script. Add to crontab to run at 3am on 1st and 15th:
 ```bash
-# Create renewal script
-cat > ~/renew-ssl.sh << 'EOF'
-#!/bin/bash
-docker-compose -f ~/litellm-deeprunner/docker-compose.yml stop nginx
-certbot renew
-cp /etc/letsencrypt/live/litellm.deeprunner.ai/fullchain.pem ~/litellm-deeprunner/config/ssl/
-cp /etc/letsencrypt/live/litellm.deeprunner.ai/privkey.pem ~/litellm-deeprunner/config/ssl/
-docker-compose -f ~/litellm-deeprunner/docker-compose.yml start nginx
-EOF
-
-chmod +x ~/renew-ssl.sh
-
-# Add to crontab (runs at 3am on 1st and 15th of month)
 (crontab -l 2>/dev/null; echo "0 3 1,15 * * ~/renew-ssl.sh >> ~/ssl-renewal.log 2>&1") | crontab -
 ```
 
@@ -239,32 +223,14 @@ See [M365_OAUTH_SETUP.md](./M365_OAUTH_SETUP.md) for detailed instructions.
 
 ## 9. Test API
 
-### Using cURL
+Test the API using cURL or the OpenAI SDK. See [LiteLLM API docs](https://docs.litellm.ai/docs/proxy/user_keys) for complete examples.
+
+Basic test:
 ```bash
 curl https://litellm.deeprunner.ai/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_MASTER_KEY" \
-  -d '{
-    "model": "gpt-3.5-turbo",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-### Using OpenAI Python Client
-```python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="YOUR_MASTER_KEY",
-    base_url="https://litellm.deeprunner.ai/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": "Hello from LiteLLM!"}]
-)
-
-print(response.choices[0].message.content)
+  -d '{"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "Hello!"}]}'
 ```
 
 ## 10. Backup & Maintenance

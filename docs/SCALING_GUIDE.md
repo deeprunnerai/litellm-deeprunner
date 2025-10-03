@@ -197,73 +197,26 @@ DigitalOcean allows resizing, but:
 To maximize performance on limited resources:
 
 ### 1. Reduce Ollama Memory Usage
-Edit `docker-compose.yml`:
-```yaml
-ollama:
-  environment:
-    - OLLAMA_NUM_PARALLEL=1  # Limit concurrent requests
-    - OLLAMA_MAX_LOADED_MODELS=1  # Only keep 1 model in memory
-```
+Set `OLLAMA_NUM_PARALLEL=1` and `OLLAMA_MAX_LOADED_MODELS=1` in `docker-compose.yml`
 
 ### 2. Optimize PostgreSQL
-Create `config/postgres.conf`:
-```
-shared_buffers = 512MB
-effective_cache_size = 1GB
-work_mem = 8MB
-maintenance_work_mem = 64MB
-max_connections = 20
-```
+Create `config/postgres.conf` with optimized settings for 4GB RAM (shared_buffers=512MB, work_mem=8MB, max_connections=20)
 
 ### 3. Limit LiteLLM Workers
-In `docker-compose.yml`:
-```yaml
-litellm:
-  command: --config /app/config.yaml --port 4000 --num_workers 2  # Reduce from 4
-```
+Reduce `--num_workers` from 4 to 2 in `docker-compose.yml`
 
 ### 4. Use Smaller Ollama Model
-Instead of Mistral, try:
+Use Phi (2.7B params) instead of Mistral:
 ```bash
-docker exec litellm-ollama ollama pull phi  # 2.7B params, much smaller
+docker exec litellm-ollama ollama pull phi
 ```
-
-Update `config/litellm-config.yaml`:
-```yaml
-- model_name: phi-local
-  litellm_params:
-    model: ollama/phi
-    api_base: http://ollama:11434
-```
+Update model configuration in `config/litellm-config.yaml`
 
 ---
 
 ## Real-Time Monitoring Script
 
-Create `scripts/monitor.sh`:
-```bash
-#!/bin/bash
-while true; do
-    clear
-    echo "=== LiteLLM Resource Monitor ==="
-    echo ""
-    echo "Memory Usage:"
-    free -h | grep Mem
-    echo ""
-    echo "CPU Load:"
-    uptime
-    echo ""
-    echo "Docker Stats:"
-    docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
-    echo ""
-    echo "Disk Usage:"
-    df -h / | tail -1
-    echo ""
-    sleep 5
-done
-```
-
-Run: `./scripts/monitor.sh`
+Create a monitoring script to track memory, CPU, and Docker stats in real-time. Use `free -h`, `uptime`, and `docker stats` commands. Run continuously with 5-second refresh.
 
 ---
 

@@ -1,8 +1,8 @@
 # LiteLLM DeepRunner.ai - Tasks
 
-## Status: Deploying to Production Droplet 🚀
+## Status: Production Deployed - Configuring OAuth 🔐
 
-**Current Progress**: Uploading files and configuring droplet (46.101.121.227)
+**Current Progress**: Services running on 46.101.121.227, sign-in page accessible, working on Microsoft 365 OAuth authentication
 
 ---
 
@@ -161,10 +161,10 @@
 ## Notes
 
 ### Decision Log
-- **2024-01-XX**: Chose manual droplet over managed services for cost and control
-- **2024-01-XX**: Selected Mistral for local model (good balance of performance/size)
-- **2024-01-XX**: Decided on M365 OAuth over other auth methods (org already uses M365)
-- **2024-01-XX**: Custom dashboard instead of grafana (simpler, 1-page requirement)
+- **2025-10-03**: Chose manual droplet over managed services for cost and control
+- **2025-10-03**: Selected Mistral for local model (good balance of performance/size)
+- **2025-10-03**: Decided on M365 OAuth over other auth methods (org already uses M365)
+- **2025-10-03**: Custom dashboard instead of grafana (simpler, 1-page requirement)
 
 ### Technical Debt
 - None currently (fresh project)
@@ -177,5 +177,5 @@
 
 ---
 
-**Last Updated**: 2025-01-XX
-**Next Review**: After Phase 3 deployment completion
+**Last Updated**: 2025-10-04
+**Next Review**: After M365 OAuth configuration completion

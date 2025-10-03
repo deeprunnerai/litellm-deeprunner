@@ -91,19 +91,10 @@ After registration, you'll see the application overview page. **Copy these value
 ## Step 5: Update LiteLLM Configuration
 
 ### 5.1 Add Credentials to .env
-SSH into your droplet and update `.env`:
-
-```bash
-cd ~/litellm-deeprunner
-nano .env
-```
-
-Update these lines:
-```env
-MICROSOFT_CLIENT_ID=your-application-client-id
-MICROSOFT_CLIENT_SECRET=your-client-secret-value
-MICROSOFT_TENANT_ID=your-directory-tenant-id
-```
+SSH into your droplet and update the Microsoft 365 OAuth section in `.env`:
+- `MICROSOFT_CLIENT_ID`: Application (client) ID from Step 1.3
+- `MICROSOFT_CLIENT_SECRET`: Secret value from Step 2.2
+- `MICROSOFT_TENANT_ID`: Directory (tenant) ID from Step 1.3
 
 ### 5.2 Restart LiteLLM
 ```bash
@@ -149,27 +140,7 @@ docker-compose logs litellm | grep -i "microsoft\|sso"
 6. Click **Add**
 
 ### 6.3 Update LiteLLM Config
-Edit `config/litellm-config.yaml`:
-
-```yaml
-permissions:
-  admin_roles:
-    - admin@deeprunner.ai
-    - "GROUP_ID_FOR_LITELLM_ADMINS"  # Replace with actual Group ID from Azure
-
-  devops_roles:
-    - devops@deeprunner.ai
-    - "GROUP_ID_FOR_LITELLM_DEVOPS"  # Replace with actual Group ID
-
-  team_member_roles:
-    - "*@deeprunner.ai"
-    - "GROUP_ID_FOR_LITELLM_USERS"  # Replace with actual Group ID
-```
-
-To get Group IDs:
-1. In Azure AD, go to **Groups**
-2. Click on each group
-3. Copy the **Object Id**
+Add group IDs to the permissions section in `config/litellm-config.yaml`. Get Group IDs from Azure AD → Groups → Object Id for each group (LiteLLM-Admins, LiteLLM-DevOps, LiteLLM-Users).
 
 ### 6.4 Restart Services
 ```bash
@@ -262,32 +233,10 @@ docker exec litellm-proxy env | grep MICROSOFT_TENANT_ID
 
 ## Testing User Roles
 
-### Test Admin Access
-```bash
-# Admin should be able to:
-# - Create/delete API keys
-# - View all logs
-# - Manage models
-# - Configure settings
-```
-
-### Test DevOps Access
-```bash
-# DevOps should be able to:
-# - View logs
-# - Monitor performance
-# - Create API keys for testing
-# - View analytics
-```
-
-### Test Team Member Access
-```bash
-# Team members should be able to:
-# - Use assigned API keys
-# - View their own usage
-# - Access models
-# - Limited admin functions
-```
+Test each role has appropriate permissions:
+- **Admin**: Create/delete API keys, view all logs, manage models, configure settings
+- **DevOps**: View logs, monitor performance, create test API keys, view analytics
+- **Team Members**: Use assigned API keys, view own usage, access models, limited admin functions
 
 ## Additional Resources
 
