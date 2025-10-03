@@ -16,42 +16,64 @@ Production-ready LiteLLM deployment with PostgreSQL, Ollama (Mistral), Nginx rev
 
 ## 📋 Quick Start
 
-### What You Need
+### Local Development
 
-1. **DigitalOcean Droplet** (CPU-Optimized 4vCPU / 8GB RAM)
-2. **Domain Name** (e.g., `litellm.deeprunner.ai`)
-3. **API Keys** for LLM providers
-4. **Microsoft 365 Admin Access** (for OAuth)
+1. **Clone & Configure**
+   ```bash
+   git clone <repo-url>
+   cd litellm-deeprunner
+   cp .env.template .env
+   nano .env  # Add your Microsoft OAuth credentials
+   ```
 
-### 1. Clone & Configure
+2. **Start Services**
+   ```bash
+   docker compose up -d
+   ```
 
-```bash
-git clone <repo-url>
-cd litellm-deeprunner
-cp .env.template .env
-nano .env  # Add your configuration
-```
+3. **Access Locally**
+   - **LiteLLM UI**: `http://localhost:3000/ui`
+   - **API Docs**: `http://localhost:3000/`
+   - **Database Admin (pgAdmin)**: `http://localhost:8081/browser/`
+   - **Via Nginx**: `http://localhost:8080/ui` (with pgAdmin at `/pgadmin/`)
 
-### 2. Deploy
+4. **Set Admin Role** (First time only)
+   ```bash
+   ./scripts/set-admin-role.sh
+   ```
+   Or manually update the database to set your user as `proxy_admin`.
 
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-```
+### Production Deployment
 
-The script will:
-- Check prerequisites (Docker, Docker Compose)
-- Generate secure keys
-- Setup SSL certificates
-- Deploy all services
-- Download Mistral model
-- Run health checks
+1. **Prerequisites**
+   - DigitalOcean Droplet (CPU-Optimized 4vCPU / 8GB RAM)
+   - Domain Name (e.g., `prod.litellm.deeprunner.ai`)
+   - Microsoft 365 Admin Access (for OAuth)
 
-### 3. Access
+2. **Deploy**
+   ```bash
+   chmod +x scripts/setup.sh
+   ./scripts/setup.sh
+   ```
 
-- **Admin UI**: `https://litellm.deeprunner.ai/ui`
-- **Analytics Dashboard**: `https://litellm.deeprunner.ai/dashboard`
-- **API Endpoint**: `https://litellm.deeprunner.ai/v1`
+3. **Configure Azure AD**
+   Add these redirect URIs in Azure Portal:
+   - `http://localhost:3000/sso/callback` (local dev)
+   - `https://prod.litellm.deeprunner.ai/sso/callback` (production)
+
+4. **Update Environment on Production**
+   ```bash
+   scp .env docker-compose.yml config/ root@46.101.121.227:/path/to/litellm-deeprunner/
+   ssh root@46.101.121.227
+   cd /path/to/litellm-deeprunner
+   docker compose down && docker compose up -d
+   ./scripts/set-admin-role.sh
+   ```
+
+5. **Access Production**
+   - **Admin UI**: `https://prod.litellm.deeprunner.ai/ui`
+   - **Database Admin**: `https://prod.litellm.deeprunner.ai/pgadmin/`
+   - **API Endpoint**: `https://prod.litellm.deeprunner.ai/v1`
 
 ## 🚀 Deployment Status
 
@@ -75,12 +97,14 @@ litellm-deeprunner/
 │   └── index.html              # Custom analytics dashboard
 ├── data/
 │   ├── postgres/               # PostgreSQL data (persistent)
-│   └── ollama/                 # Ollama models (persistent)
+│   ├── ollama/                 # Ollama models (persistent)
+│   └── pgadmin/                # pgAdmin data (persistent)
 ├── docs/
 │   ├── DEPLOYMENT.md           # Complete deployment guide
 │   └── M365_OAUTH_SETUP.md     # Microsoft 365 OAuth setup
 ├── scripts/
-│   └── setup.sh                # Automated deployment script
+│   ├── setup.sh                # Automated deployment script
+│   └── set-admin-role.sh       # Set user as admin in database
 ├── docker-compose.yml          # Service orchestration
 ├── .env.template               # Environment variables template
 └── README.md                   # This file
@@ -94,10 +118,29 @@ See `.env.template` for all configuration options including:
 - Database credentials
 - LiteLLM master key and salt
 - Microsoft 365 OAuth (client ID, secret, tenant ID)
+  - **Important**: Set both `MICROSOFT_TENANT_ID` and `MICROSOFT_TENANT`
+- Admin email (for pgAdmin login)
 - Domain configuration
 - LLM provider API keys (OpenAI, Anthropic, Azure)
 
 Generate secure keys: `openssl rand -hex 32`
+
+### Database Administration
+
+Access pgAdmin at:
+- **Local**: `http://localhost:8081/browser/` (direct) or `http://localhost:8080/pgadmin/` (via Nginx)
+- **Production**: `https://prod.litellm.deeprunner.ai/pgadmin/`
+
+**Login credentials:**
+- Email: Value from `ADMIN_EMAIL` in .env
+- Password: Value from `UI_PASSWORD` in .env
+
+**Database connection:**
+- Host: `postgres`
+- Port: `5432`
+- Database: `litellm`
+- Username: `litellm_user`
+- Password: Value from `POSTGRES_PASSWORD` in .env
 
 ### Supported Models
 

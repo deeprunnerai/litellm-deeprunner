@@ -1,8 +1,8 @@
 # LiteLLM DeepRunner.ai - Tasks
 
-## Status: Production Deployed - Configuring OAuth 🔐
+## Status: Local Development Environment Ready ✅
 
-**Current Progress**: Services running on 46.101.121.227, sign-in page accessible, working on Microsoft 365 OAuth authentication
+**Current Progress**: Local development environment configured with Microsoft 365 OAuth, pgAdmin, and admin access. Ready for production deployment.
 
 ---
 
@@ -10,11 +10,12 @@
 
 ### Phase 1: Project Setup ✅
 - [x] Create project directory structure
-- [x] Create docker-compose.yml with PostgreSQL, LiteLLM, Ollama, Nginx
+- [x] Create docker-compose.yml with PostgreSQL, LiteLLM, Ollama, Nginx, pgAdmin
 - [x] Create .env.template file
 - [x] Create LiteLLM configuration (config/litellm-config.yaml)
 - [x] Create Nginx reverse proxy configuration
 - [x] Create automated deployment script (scripts/setup.sh)
+- [x] Create admin role setup script (scripts/set-admin-role.sh)
 - [x] Create custom analytics dashboard (dashboard/index.html)
 - [x] Create deployment documentation (docs/DEPLOYMENT.md)
 - [x] Create M365 OAuth setup guide (docs/M365_OAUTH_SETUP.md)
@@ -24,11 +25,37 @@
 - [x] Create TASKS.md for task tracking
 - [x] Create CHANGELOG.md for version history
 
+### Phase 2: Local Development Environment ✅
+- [x] Configure Microsoft 365 OAuth (Azure AD)
+- [x] Add MICROSOFT_TENANT environment variable
+- [x] Setup pgAdmin for database administration
+- [x] Configure Nginx reverse proxy for pgAdmin (/pgadmin/)
+- [x] Create localhost Nginx configuration (port 8080)
+- [x] Comment out HTTPS server block for local dev
+- [x] Set admin role for user (gaurav@deeprunner.ai)
+- [x] Test OAuth login flow locally
+- [x] Verify admin access to LiteLLM UI
+- [x] Update documentation with local dev setup
+
 ---
 
 ## Current Tasks
 
-### Phase 2: Droplet Provisioning ✅
+### Phase 3: Production Deployment 🚧
+- [ ] Uncomment HTTPS server block in nginx.conf for production
+- [ ] Update .env on production droplet with MICROSOFT_TENANT
+- [ ] Deploy updated docker-compose.yml with pgAdmin
+- [ ] Deploy updated nginx.conf with pgAdmin proxy
+- [ ] Run set-admin-role.sh script on production
+- [ ] Test OAuth login on production
+- [ ] Verify pgAdmin access on production
+- [ ] Test all services end-to-end
+
+---
+
+## Completed Production Tasks
+
+### Phase 2.1: Droplet Provisioning ✅
 - [x] **Provision DigitalOcean droplet**
   - Created Premium AMD $28/mo (4GB/2CPU) - optimized for initial testing
   - IP: 46.101.121.227

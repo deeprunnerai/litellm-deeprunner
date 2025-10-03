@@ -10,9 +10,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### In Progress - 2025-10-04
-**Production Deployment & OAuth Configuration**
+**Production Deployment Preparation**
 
-#### Added
+#### Next Steps
+- Deploy to production with updated configuration
+- Uncomment HTTPS server block for production
+- Test end-to-end OAuth flow on production
+
+---
+
+## [0.2.0] - 2025-10-04
+
+### Added - Local Development & Database Admin
+
+#### Features
+- **pgAdmin Integration**:
+  - Added pgAdmin4 container for database administration
+  - Direct access at http://localhost:8081/browser/
+  - Nginx reverse proxy at /pgadmin/ path
+  - Persistent data storage in data/pgadmin/
+  - Login via ADMIN_EMAIL and UI_PASSWORD from .env
+
+- **Admin Role Management**:
+  - Created scripts/set-admin-role.sh for setting user as proxy_admin
+  - Automatic database query to update user role
+  - Simplified admin onboarding process
+
+- **Local Development Configuration**:
+  - Added localhost server block in nginx.conf (port 8080)
+  - Commented out HTTPS server block for local development
+  - Configured pgAdmin proxy through Nginx
+  - Multiple access points for flexibility
+
+#### Changed
+- **Environment Variables**:
+  - Added MICROSOFT_TENANT (in addition to MICROSOFT_TENANT_ID)
+  - Required for LiteLLM OAuth to work properly
+  - Updated .env with both variables
+
+- **docker-compose.yml**:
+  - Added pgAdmin4 service
+  - Removed direct port mapping for pgAdmin (now proxied via Nginx)
+  - pgAdmin accessible only through Nginx for security
+
+- **config/nginx.conf**:
+  - Added upstream pgadmin_backend configuration
+  - Added /pgadmin/ location block with proper headers
+  - Created separate server block for localhost (development)
+  - Commented HTTPS server block (production-only)
+
+- **config/litellm-config.yaml**:
+  - Added litellm_proxy_admin_id configuration
+  - Set gaurav@deeprunner.ai as admin
+
+#### Documentation
+- **README.md**:
+  - Added Local Development section with step-by-step guide
+  - Added Database Administration section with pgAdmin instructions
+  - Updated Project Structure to include pgAdmin
+  - Added Azure AD redirect URI configuration steps
+  - Separated local and production deployment instructions
+
+- **TASKS.md**:
+  - Added Phase 2: Local Development Environment (completed)
+  - Updated status to "Local Development Environment Ready"
+  - Added new tasks for production deployment
+  - Moved completed tasks to proper sections
+
+#### Infrastructure
+- **Droplet Provisioned**: 46.101.121.227
+  - Type: Premium AMD (DigitalOcean)
+  - Specs: 4GB RAM / 2 vCPU / 80GB NVMe SSD
+  - Cost: $28/month
+  - Hostname: litellm-prod-01
+  - OS: Ubuntu 24.04 LTS
+
+- **SSH Access Configured**:
+  - Key: ~/.ssh/deeprunner_litellm
+  - Alias: litellm-droplet
+  - Connection verified
+
+#### Security
+- **OAuth Configuration**:
+  - Microsoft 365 OAuth fully configured
+  - Azure AD redirect URIs added for local and production
+  - SSO login flow tested and working
+  - Admin role properly assigned via database
+
+#### Current Status (2025-10-04)
+**Completed**:
+- Local development environment fully functional
+- Microsoft 365 OAuth authentication working
+- pgAdmin database administration accessible
+- Admin access configured and tested
+- Documentation updated
+
+**Ready For**:
+- Production deployment with current configuration
+
+---
+
+## [0.1.1] - 2025-10-04
+
+### Added - Scaling & Optimization
+
+#### Documentation
 - **docs/SCALING_GUIDE.md**: Comprehensive scaling documentation
   - Entry-level ($28) vs production ($84) vs HA ($250+) comparison
   - Monitoring commands and resource optimization tips
@@ -26,33 +128,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Set OLLAMA_NUM_PARALLEL=1 (single concurrent request)
   - Set OLLAMA_MAX_LOADED_MODELS=1 (conserve memory)
   - Removed GPU configuration (CPU-only droplet)
-
-#### Infrastructure
-- **Droplet Provisioned**: 46.101.121.227
-  - Type: Premium AMD (DigitalOcean)
-  - Specs: 4GB RAM / 2 vCPU / 80GB NVMe SSD
-  - Cost: $28/month (vs recommended $84)
-  - Hostname: litellm-prod-01
-  - OS: Ubuntu 24.04 LTS
-
-- **SSH Access Configured**:
-  - Key: ~/.ssh/deeprunner_litellm
-  - Alias: litellm-droplet
-  - Connection verified
-
-- **Files Uploaded**: All project files transferred to droplet
-
-#### Current Status (2025-10-04)
-**Completed**:
-- Droplet provisioned and configured
-- All services deployed and running
-- Production URL accessible
-- Sign-in page working
-
-**In Progress**:
-- Microsoft 365 OAuth authentication configuration
-
-**Next**: Complete M365 OAuth setup in Azure AD → Test SSO login flow
 
 ### Planned
 - Terraform configuration for infrastructure as code

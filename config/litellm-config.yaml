@@ -83,6 +83,10 @@ general_settings:
       tenant_id: os.environ/MICROSOFT_TENANT_ID
       scope: "openid profile email"
 
+  # Admin users
+  litellm_proxy_admin_id:
+    - "gaurav@deeprunner.ai"
+
   # CORS settings
   allowed_origins: ["*"]
 
