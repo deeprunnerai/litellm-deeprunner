@@ -61,7 +61,7 @@ services:
       - ./config/litellm-config.yaml:/app/config.yaml
     command: --config /app/config.yaml --port 4000 --num_workers 2
     ports:
-      - "6000:4000"
+      - "3000:4000"
     depends_on:
       postgres:
         condition: service_healthy
