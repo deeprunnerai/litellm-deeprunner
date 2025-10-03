@@ -61,7 +61,7 @@ services:
       - ./config/litellm-config.yaml:/app/config.yaml
     command: --config /app/config.yaml --port 4000 --num_workers 2
     ports:
-      - "4000:4000"
+      - "6000:4000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,8 +80,8 @@ services:
     container_name: litellm-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
