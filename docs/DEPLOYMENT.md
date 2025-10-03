@@ -148,39 +148,73 @@ nslookup litellm.deeprunner.ai
 
 ### Install Certbot
 ```bash
+sudo apt update
 sudo apt install certbot -y
 ```
 
-### Stop Nginx Temporarily
+### Create Webroot Directory
 ```bash
-docker-compose stop nginx
+sudo mkdir -p /var/www/certbot
 ```
 
-### Obtain Certificate
+### Update Nginx Configuration
+The nginx configuration is already set up to serve ACME challenges from `/var/www/certbot` at the `/.well-known/acme-challenge/` location.
+
+### Stop Nginx Temporarily (First Time Only)
+```bash
+docker compose stop nginx
+```
+
+### Obtain Certificate (First Time - Standalone)
 ```bash
 sudo certbot certonly --standalone \
-  -d litellm.deeprunner.ai \
-  --email admin@deeprunner.ai \
+  --non-interactive \
   --agree-tos \
-  --no-eff-email
+  --email devops@deeprunner.ai \
+  -d prod.litellm.deeprunner.ai \
+  --preferred-challenges http
 ```
 
-### Copy Certificates
+### Reconfigure for Webroot Renewal
 ```bash
-sudo cp /etc/letsencrypt/live/litellm.deeprunner.ai/fullchain.pem config/ssl/
-sudo cp /etc/letsencrypt/live/litellm.deeprunner.ai/privkey.pem config/ssl/
-sudo chown deeprunner:deeprunner config/ssl/*.pem
+# Stop nginx temporarily
+docker compose stop nginx
+
+# Create webroot directory
+sudo mkdir -p /var/www/certbot
+
+# Get certificate with webroot method (this updates renewal config)
+sudo certbot certonly --webroot \
+  -w /var/www/certbot \
+  --force-renewal \
+  --non-interactive \
+  --agree-tos \
+  --email devops@deeprunner.ai \
+  -d prod.litellm.deeprunner.ai
+
+# Start nginx
+docker compose up -d nginx
 ```
 
-### Setup Auto-Renewal
-See `scripts/renew-ssl.sh` for the SSL renewal script. Add to crontab to run at 3am on 1st and 15th:
+### Verify Auto-Renewal Configuration
+Certbot automatically sets up a systemd timer for renewals. Verify it:
 ```bash
-(crontab -l 2>/dev/null; echo "0 3 1,15 * * ~/renew-ssl.sh >> ~/ssl-renewal.log 2>&1") | crontab -
+sudo systemctl status certbot.timer
 ```
 
-### Restart Nginx
+The timer runs twice daily and will automatically renew certificates when they're within 30 days of expiration.
+
+### Test Renewal (Dry Run)
 ```bash
-docker-compose up -d nginx
+sudo certbot renew --dry-run
+```
+
+**Note**: The renewal uses webroot method, so nginx must be running. The certificates are mounted directly from `/etc/letsencrypt` into the nginx container, so no manual copying is needed.
+
+### Manual Renewal (if needed)
+```bash
+sudo certbot renew
+docker compose restart nginx
 ```
 
 ## 7. Verify Deployment

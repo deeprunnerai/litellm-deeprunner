@@ -83,39 +83,100 @@ generate_keys() {
 setup_ssl() {
     print_info "Setting up SSL certificates..."
 
-    mkdir -p config/ssl
+    # Check if Let's Encrypt certificates already exist
+    if [ -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+        print_success "Let's Encrypt certificates found for $DOMAIN"
+        return 0
+    fi
 
-    if [ ! -f config/ssl/fullchain.pem ]; then
-        print_warning "SSL certificates not found"
-        print_info "Options:"
-        echo "  1. Use self-signed certificate (for testing)"
-        echo "  2. Use Let's Encrypt (requires domain pointing to this server)"
-        echo "  3. Skip SSL setup (configure manually later)"
-        read -p "Choose option (1-3): " ssl_option
+    print_warning "SSL certificates not found"
+    print_info "Options:"
+    echo "  1. Use self-signed certificate (for testing)"
+    echo "  2. Use Let's Encrypt (requires domain pointing to this server)"
+    echo "  3. Skip SSL setup (configure manually later)"
+    read -p "Choose option (1-3): " ssl_option
 
-        case $ssl_option in
-            1)
-                print_info "Generating self-signed certificate..."
-                openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                    -keyout config/ssl/privkey.pem \
-                    -out config/ssl/fullchain.pem \
-                    -subj "/C=US/ST=State/L=City/O=DeepRunner/CN=localhost"
-                print_success "Self-signed certificate created"
-                ;;
-            2)
-                print_info "Let's Encrypt setup requires:"
-                print_info "1. A domain pointing to this server's IP"
-                print_info "2. Port 80 and 443 accessible"
-                print_info "Please follow docs/DEPLOYMENT.md for Let's Encrypt setup"
-                ;;
-            3)
-                print_warning "Skipping SSL setup. Configure manually before production use."
-                # Create dummy files to prevent nginx errors
-                touch config/ssl/privkey.pem config/ssl/fullchain.pem
-                ;;
-        esac
+    case $ssl_option in
+        1)
+            print_info "Generating self-signed certificate..."
+            mkdir -p config/ssl
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout config/ssl/privkey.pem \
+                -out config/ssl/fullchain.pem \
+                -subj "/C=US/ST=State/L=City/O=DeepRunner/CN=${DOMAIN}"
+            print_success "Self-signed certificate created"
+            ;;
+        2)
+            setup_letsencrypt
+            ;;
+        3)
+            print_warning "Skipping SSL setup. Configure manually before production use."
+            mkdir -p config/ssl
+            touch config/ssl/privkey.pem config/ssl/fullchain.pem
+            ;;
+    esac
+}
+
+# Setup Let's Encrypt SSL
+setup_letsencrypt() {
+    print_info "Setting up Let's Encrypt SSL..."
+
+    # Check if certbot is installed
+    if ! command -v certbot &> /dev/null; then
+        print_info "Installing certbot..."
+        apt update
+        apt install certbot -y
+        print_success "Certbot installed"
+    fi
+
+    # Create webroot directory
+    mkdir -p /var/www/certbot
+    print_success "Webroot directory created"
+
+    # Get domain from .env
+    DOMAIN=$(grep DOMAIN= .env | cut -d '=' -f2)
+    ADMIN_EMAIL=$(grep ADMIN_EMAIL= .env | cut -d '=' -f2)
+
+    if [ -z "$DOMAIN" ] || [ -z "$ADMIN_EMAIL" ]; then
+        print_error "DOMAIN or ADMIN_EMAIL not set in .env file"
+        print_info "Please configure these values and run setup again"
+        return 1
+    fi
+
+    print_info "Obtaining certificate for: $DOMAIN"
+    print_info "Admin email: $ADMIN_EMAIL"
+
+    # Initial certificate with standalone (nginx not running yet)
+    certbot certonly --standalone \
+        --non-interactive \
+        --agree-tos \
+        --email "$ADMIN_EMAIL" \
+        -d "$DOMAIN" \
+        --preferred-challenges http
+
+    if [ $? -eq 0 ]; then
+        print_success "Certificate obtained successfully"
+
+        # Reconfigure for webroot renewal
+        print_info "Configuring webroot renewal..."
+        certbot certonly --webroot \
+            -w /var/www/certbot \
+            --force-renewal \
+            --non-interactive \
+            --agree-tos \
+            --email "$ADMIN_EMAIL" \
+            -d "$DOMAIN"
+
+        print_success "Auto-renewal configured with webroot method"
+        print_info "Certificate will auto-renew via systemd timer (certbot.timer)"
     else
-        print_success "SSL certificates found"
+        print_error "Failed to obtain certificate"
+        print_info "Falling back to self-signed certificate"
+        mkdir -p config/ssl
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout config/ssl/privkey.pem \
+            -out config/ssl/fullchain.pem \
+            -subj "/C=US/ST=State/L=City/O=DeepRunner/CN=${DOMAIN}"
     fi
 }
 
