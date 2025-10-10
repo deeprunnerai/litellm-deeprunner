@@ -6,10 +6,11 @@ A native macOS application bundle that launches LiteLLM with one click. No need 
 
 ## What It Does
 
-1. **Checks Docker** - Verifies Docker Desktop is running
-2. **Starts Docker** - Opens Docker Desktop if needed
-3. **Starts Services** - Launches all LiteLLM containers (`docker compose up -d`)
-4. **Opens UI** - Opens LiteLLM admin interface in your default browser
+1. **Opens Browser** - Launches your default browser
+2. **Navigates to LiteLLM** - Opens the production LiteLLM UI at `https://prod.litellm.deeprunner.ai/ui`
+3. **Shows Notification** - Displays a macOS notification when launching
+
+**Note:** This app connects to the **production server** - no Docker required!
 
 ## Installation
 
@@ -65,8 +66,8 @@ On first launch, macOS may show a security warning:
 ## Requirements
 
 - **macOS 10.13+** (High Sierra or later)
-- **Docker Desktop** installed
-- **Project Directory** must remain at `/Users/gauravdr/Projects/litellm-deeprunner`
+- **Internet Connection** (to access production server)
+- **Default Browser** (Safari, Chrome, Firefox, etc.)
 
 ## How It Works
 
@@ -82,9 +83,9 @@ LiteLLM DeepRunner.app/
 ```
 
 The launcher script (`Contents/MacOS/LiteLLM DeepRunner`):
-- Bash script that manages Docker and services
+- Simple bash script (12 lines!)
 - Uses macOS notifications (`osascript`)
-- Finds project directory automatically
+- Opens production URL in default browser
 
 ## Customization
 
@@ -121,27 +122,17 @@ open "http://localhost:3000/ui"
 xattr -cr "LiteLLM DeepRunner.app"
 ```
 
-### Docker Won't Start
-
-- Ensure Docker Desktop is installed
-- Check Docker Desktop settings: Running on login
-- Manually start Docker, then try the app again
-
-### Services Don't Start
-
-```bash
-# Manually check status
-cd /Users/gauravdr/Projects/litellm-deeprunner
-docker compose ps
-
-# View logs
-docker compose logs
-```
-
 ### Browser Doesn't Open
 
-- Check if port 3000 is in use: `lsof -i :3000`
-- Manually open: `http://localhost:3000/ui`
+- Check your default browser settings
+- Manually open: `https://prod.litellm.deeprunner.ai/ui`
+- Try a different browser
+
+### Can't Connect to Server
+
+- Check internet connection
+- Verify server is running: `ping prod.litellm.deeprunner.ai`
+- Check if URL has changed
 
 ## Uninstallation
 
