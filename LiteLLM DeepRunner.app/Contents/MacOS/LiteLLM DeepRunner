@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# LiteLLM DeepRunner Launcher
+# Opens LiteLLM UI in default browser
+
+# Get the project directory (3 levels up from this script)
+APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+
+# Function to display notification
+notify() {
+    osascript -e "display notification \"$1\" with title \"LiteLLM DeepRunner\" sound name \"default\""
+}
+
+# Function to check if Docker is running
+is_docker_running() {
+    docker info &> /dev/null
+    return $?
+}
+
+# Function to check if containers are running
+are_containers_running() {
+    cd "$APP_DIR"
+    RUNNING=$(docker compose ps --services --filter "status=running" 2>/dev/null | wc -l)
+    if [ "$RUNNING" -ge 3 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Check if Docker is running
+if ! is_docker_running; then
+    notify "Starting Docker Desktop..."
+    open -a Docker
+
+    # Wait for Docker to start (up to 30 seconds)
+    for i in {1..30}; do
+        sleep 1
+        if is_docker_running; then
+            break
+        fi
+    done
+
+    if ! is_docker_running; then
+        osascript -e "display dialog \"Docker Desktop failed to start. Please start Docker manually.\" buttons {\"OK\"} default button 1 with title \"LiteLLM DeepRunner\""
+        exit 1
+    fi
+fi
+
+# Check if containers are running
+if ! are_containers_running; then
+    notify "Starting LiteLLM services..."
+    cd "$APP_DIR"
+
+    # Start services in background
+    docker compose up -d &> /dev/null
+
+    # Wait for services to be ready (up to 20 seconds)
+    for i in {1..20}; do
+        sleep 1
+        if are_containers_running; then
+            break
+        fi
+    done
+fi
+
+# Wait a moment for LiteLLM to be fully ready
+sleep 2
+
+# Open LiteLLM UI
+notify "Opening LiteLLM UI..."
+open "http://localhost:3000/ui"
+
+exit 0
