@@ -67,8 +67,8 @@ fi
 # Wait a moment for LiteLLM to be fully ready
 sleep 2
 
-# Open LiteLLM UI
+# Open LiteLLM UI (Production URL)
 notify "Opening LiteLLM UI..."
-open "http://localhost:3000/ui"
+open "https://prod.litellm.deeprunner.ai/ui"
 
 exit 0
