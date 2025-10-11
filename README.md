@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="litellm-deeprunner-logo.png" alt="LiteLLM DeepRunner" width="600"/>
+</div>
+
 # LiteLLM Deployment - DeepRunner.ai
 
 Production-ready LiteLLM deployment with PostgreSQL, Ollama (Mistral), Nginx reverse proxy, and Microsoft 365 OAuth authentication.
