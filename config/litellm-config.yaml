@@ -91,6 +91,9 @@ general_settings:
     - gaurav@deeprunner.ai
     - devops@deeprunner.ai
 
+  # User limits - Increased to 25 users
+  max_internal_users: 25
+
   # CORS settings
   allowed_origins: ["*"]
 

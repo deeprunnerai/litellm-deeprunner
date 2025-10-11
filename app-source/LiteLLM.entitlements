@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Associated Domains for Password Autofill -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>webcredentials:prod.litellm.deeprunner.ai</string>
+        <string>webcredentials:deeprunner.ai</string>
+        <string>webcredentials:login.microsoftonline.com</string>
+    </array>
+</dict>
+</plist>

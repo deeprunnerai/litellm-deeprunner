@@ -47,6 +47,8 @@ services:
       UI_USERNAME: ${UI_USERNAME}
       UI_PASSWORD: ${UI_PASSWORD}
       STORE_MODEL_IN_DB: "True"
+      # User limits
+      MAX_INTERNAL_USERS: "25"
       # OAuth Configuration
       MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
       MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
