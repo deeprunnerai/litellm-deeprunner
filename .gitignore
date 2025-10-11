@@ -57,3 +57,4 @@ npm-debug.log
 *.sublime-workspace
 .vscode/
 .idea/
+AppIcon.iconset/
